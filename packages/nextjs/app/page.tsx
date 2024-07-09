@@ -11,34 +11,35 @@ import { useScaffoldContract, useScaffoldReadContract, useScaffoldWriteContract 
 
 const Home: NextPage = () => {
   const { address: connectedAddress } = useAccount();
-  const [newGreetingSubmitted, setNewGreetingSubmitted] = useState<string>("");
+  const [newGreetingSubmitted, setNewGreetingSubmitted] = useState<bigint>();
 
-  const { data: yourContract } = useScaffoldContract({
-    contractName: "YourContract",
+  // const { data: yourContract } = useScaffoldContract({
+  //   contractName: "NestableNFT",
+  // });
+
+  //console.log("NestableNFT", yourContract);
+
+  const { data: ownedTotal } = useScaffoldReadContract({
+    contractName: "NestableNFT",
+    functionName: "balanceOf",
+    args: [connectedAddress],
   });
 
-  console.log("YourContract", yourContract);
-
-  const { data: currentGreeting } = useScaffoldReadContract({
-    contractName: "YourContract",
-    functionName: "greeting",
-  });
-
-  const { writeContractAsync: writeYourContractAsync } = useScaffoldWriteContract("YourContract");
+  const { writeContractAsync: writeYourContractAsync } = useScaffoldWriteContract("NestableNFT");
 
   const handleSubmitGreeting = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (newGreetingSubmitted) {
       try {
         await writeYourContractAsync({
-          functionName: "setGreeting",
-          args: [newGreetingSubmitted],
+          functionName: "mint",
+          args: [connectedAddress, newGreetingSubmitted],
         });
       } catch (error) {
-        console.error("Error submitting greeting", error);
+        console.error("Error submitting mint", error);
       }
     } else {
-      console.error("No greeting submitted");
+      console.error("No mint submitted");
     }
   };
 
@@ -93,8 +94,8 @@ const Home: NextPage = () => {
             <h1 className="text-center text-lg">What Greeting Would You Like to Set?</h1>
             <form onSubmit={handleSubmitGreeting} style={{ display: "flex", flexDirection: "column" }}>
               <InputBase
-                name="greet"
-                placeholder="Greeting to be Set"
+                name="mint"
+                placeholder="TokenId to be minted"
                 value={newGreetingSubmitted}
                 onChange={setNewGreetingSubmitted}
               />
@@ -108,10 +109,10 @@ const Home: NextPage = () => {
                   margin: "1rem",
                 }}
               >
-                Set Greeting
+                Mint!
               </button>
             </form>
-            <p style={{ textAlign: "center" }}>Current Greeting is: {String(currentGreeting)}</p>
+            <p style={{ textAlign: "center" }}>Owned NFTs: {String(ownedTotal)}</p>
           </div>
         </div>
 
